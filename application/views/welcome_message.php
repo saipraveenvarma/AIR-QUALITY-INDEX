@@ -51,7 +51,7 @@
     </div>
 
     <div style="font-size: 20px; text-align: center; position: relative; top: 50px;">
-        IMD SILAM Air Quality Forecast Over
+        IMD SILAM Air Quality Forecast Over 
     </div>
 
     <div style="width: 450px; height: 450px; margin-top: 20px;">
