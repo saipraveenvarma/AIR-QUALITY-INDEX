@@ -3,1120 +3,420 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>AIR QUALITY FORECAST</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @media print {
-            * {
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-            }
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
         }
+
+        #header {
+            width: 100%;
+            background-color: white;
+            color: black;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #content {
+            display: flex;
+            height: calc(100% - 50px);
+        }
+
+        #map {
+            width: 75%;
+            height: 100%;
+        }
+
+        #marker-info-container {
+            width: 25%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background-color: #f0f0f0;
+            overflow-y: auto;
+            padding: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .marker-info-box {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            height: 100%;
+        }
+
+        .marker-info-box:last-child {
+            border-bottom: none;
+        }
+
+        .marker-info-box h2 {
+            margin-top: 0;
+        }
+
+        .marker-info-box p {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+
+
+        .custom-marker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .aqi-value {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            color: white;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #000000;
+        }
+
+        .aqi-color-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            /* Align items to the left */
+            margin-left: 60%;
+        }
+
+        .aqi-color {
+            height: 20px;
+            width: 100px;
+            /* Adjust width as needed */
+            border-radius: 3px;
+            display: flex;
+            justify-content: flex-end;
+            /* Align content to the right within the box */
+            align-items: center;
+            color: white;
+            /* Ensure text color is visible against background */
+            padding-right: 10px;
+            /* Add padding to the right side to position text */
+            box-sizing: border-box;
+            /* Ensure padding is included in the width */
+        }
+        .aqi-color1 {
+    height: 30px; /* Adjust height to match the circle diameter */
+    width: 30px; /* Adjust width to match the circle diameter */
+    border-radius: 50%; /* Make it a circle with 50% border-radius */
+    display: flex;
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    color: white; /* Text color */
+    background-color: #4CAF50; /* Example background color */
+}
+
+
+        .aqi-color span {
+            text-align: right;
+            /* Align text to the right within the box */
+        }
+
+
+
+        .aqi-bar {
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(to right,
+                    rgb(71, 155, 85) 0%,
+                    rgb(134, 206, 0) 20%,
+                    rgb(246, 249, 38) 40%,
+                    rgb(255, 150, 22) 60%,
+                    rgb(251, 13, 13) 80%,
+                    rgb(175, 0, 56) 100%);
+            border-radius: 5px;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .aqi-bar-inner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        .aqi-scale {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+
+        .aqi-point {
+            position: absolute;
+            top: -15px;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .aqi-point::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: calc(100% - 10px);
+            background-color: black;
+        }
+        .separator {
+        width: 100%;
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 10px 0; /* Adjust margin for spacing */
+    }
+    
     </style>
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.31.1.min.js"></script>
-    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>plugins/plotly-2.31.1.min.js"></script> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-</head>
-
-
-
-</script>
-
 
 <body>
+    <div id="header">AQI</div>
+    <div id="content">
+        <div id="marker-info-container">
+            <div class="marker-info-box" id="marker-info">
+                <div id="marker-station" style="position: absolute; top: 0; right: 0; margin: 10px;">${data.station}
+                </div>
+                <div class="aqi-color-wrapper ${getAQISizeClass(data.airqualityindexvalue)}">
+                    <div class="aqi-color"
+                        style="background-color: ${aqiColor}; display: flex; align-items: center; position: absolute; right: 0; margin: 10px;">
+                        <span>${aqiText}</span>
+                    </div>
+                    <p><b></b> <span id="lastupdate">${data.lastupdate}</span></p>
 
-    <!-- Print icon with inline CSS -->
-    <a href="#" id="printButton"
-        style="position: fixed; top: 20px; right: 20px; font-size: 24px; cursor: pointer; z-index: 1000;">
-        <i class="fas fa-print"></i> Print
-    </a>
+
+                </div>
+                <p style="display: flex; align-items: center;">
+                    <b><i class="fa fa-thermometer-half" aria-hidden="true"></i> <span id="max-value"
+                            style="margin-left: 5px;">${data.max}</span></b>
+                    <b style="margin-left: 20px;"><i class="fa-solid fa-droplet"></i> <span id="min-value"
+                            style="margin-left: 5px;">${data.min}</span></b>
+                </p>
 
 
-    <div style="font-size: 25px; color: #0000e7; text-align: center;">AIR QUALITY FORECAST BY IMD SILAM MODEL</div>
+                <p><b>Air Quality Index:</b> <span id="airqualityindexvalue">${data.airqualityindexvalue}</span></p>
 
-    <div
-        style="width: 555px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; display: flex; align-items: center; justify-content: space-between; background-color: #f9f9f9; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); position: relative; top: 50%; left: 50%; transform: translateY(50%) translateX(-50%);">
-        <h2 style="font-size: 20px; margin-right: 5px; margin-bottom: 0; color: #333;">SELECT CITY:</h2>
-        <div style="flex-grow: 1; margin-right: 5px;">
-            <select id="options"
-                style="width: 100%; padding: 5px; font-size: 14px; border: 1px solid #ccc; border-radius: 3px; outline: none; background-color: #fff;">
-                <!-- Options will be populated dynamically via JavaScript -->
-            </select>
+
+
+            </div>
+            <div class="marker-info-box" id="empty-box-1">
+
+            </div>
+            <div class="marker-info-box2" id="empty-box-2"></div>
         </div>
-        <button type="submit"
-            style="padding: 5px 10px; font-size: 14px; border: none; border-radius: 3px; background-color: #007bff; color: #fff; cursor: pointer;">Submit</button>
+        <div id="map"></div>
     </div>
-
-    <div style="font-size: 20px; text-align: center; position: relative; top: 50px;">
-        IMD SILAM Air Quality Forecast Over
-    </div>
-
-    <div style="width: 450px; height: 450px; margin-top: 20px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 120px;" id="myChart"></canvas>
-    </div>
-
-    <div style="width: 415px;
-    height: 27px;
-    background-color: #00b050;
-    margin-right: 10px;
-    margin-top: -93px;
-    margin-left: 34px;"></div>
-
-    <div style="width: 415px;
-    height: 27px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -54px;
-    margin-left: 34px;"></div>
-
-    <div style="width: 415px;
-    height: 27px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -54px;
-    margin-left: 34px;"></div>
-
-    <div style="width: 415px;
-    height: 27px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -54px;
-    margin-left: 34px;"></div>
-
-
-    <div style="width: 415px;
-    height: 111px;
-    background-color: #ff0000;
-    margin-right: 10px;
-    margin-top: -138px;
-    margin-left: 34px;"></div>
-
-
-    <div style="    width: 415px;
-    height: 133px;
-    background-color: #c00000;
-    margin-right: 10px;
-    margin-top: -244px;
-    margin-left: 34px;"></div>
-
-    <div style="width: 450px; height: 450px; margin-top: -285px; margin-left: 500px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 120px;" id="myChart1"></canvas>
-    </div>
-
-
-    <div style="width: 415px;
-    height: 35px;
-    background-color:  #00b050;
-    margin-right: 10px;
-    margin-top: -100px;
-    margin-left: 534px;"></div>
-
-    <div style="width: 415px;
-    height: 35px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -70px;
-    margin-left: 534px;"></div>
-
-    <div style="width: 415px;
-    height: 105px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -141px;
-    margin-left: 534px;"></div>
-
-    <div style="    width: 415px;
-    height: 70px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -175px;
-    margin-left: 534px;"></div>
-
-
-    <div style="    width: 415px;
-    height: 56px;
-    background-color: #ff0000;
-    margin-right: 10px;
-    margin-top: -126px;
-    margin-left: 534px;"></div>
-
-    <div style="width: 415px;
-    height: 50px;
-    background-color: #c00000;
-    margin-right: 10px;
-    margin-top: -106px;
-    margin-left: 534px;"></div>
-
-
-    <div style="width: 450px; height: 450px; margin-top: -203px; margin-left: 980px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 120px;" id="myChart2"></canvas>
-    </div>
-
-    <div style="width: 398px;
-    height: 25px;
-    background-color: #00b050;
-    margin-right: 10px;
-    margin-top: -90px;
-    margin-left: 1027px;"></div>
-
-
-    <div style="width: 398px;
-    height: 25px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -50px;
-    margin-left: 1027px;"></div>
-
-
-    <div style="    width: 398px;
-    height: 201px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -227px;
-    margin-left: 1027px;"></div>
-
-
-    <div style="width: 398px;
-    height: 101px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -302px;
-    margin-left: 1027px;"></div>
-
-
-
-    <div style="width: 450px; height: 450px; margin-top: 400px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 309px;" id="myChart3"></canvas>
-    </div>
-
-
-    <div style="width: 411px;
-    height: 56.8px;
-    background-color: #00b050;
-    margin-right: 10px;
-    margin-top: -122px;
-    margin-left: 34px;"></div>
-
-
-    <div style="    width: 411px;
-    height: 56.8px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -114px;
-    margin-left: 34px;"></div>
-
-    <div style="    width: 411px;
-    height: 142px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -198px;
-    margin-left: 34px;"></div>
-
-
-    <div style="    width: 411px;
-    height: 97px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -239px;
-    margin-left: 34px;
-}"></div>
-
-    <div style="width: 450px; height: 450px; margin-top: -250px; margin-left: 500px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 120px;" id="myChart4"></canvas>
-    </div>
-
-    <div style="width: 411px;
-    height: 71px;
-    background-color: #00b050;
-    margin-right: 10px;
-    margin-top: -136px;
-    margin-left: 534px;"></div>
-
-
-    <div style="width: 411px;
-    height: 71px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -142px;
-    margin-left: 534px;"></div>
-
-
-    <div style="width: 411px;
-    height: 96.56px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -168px;
-    margin-left: 534px;"></div>
-
-
-    <div style="width: 411px;
-    height: 114px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -210px;
-    margin-left: 534px;"></div>
-
-    <div style="width: 450px; height: 450px; margin-top: -266px; margin-left: 980px;">
-        <canvas style="width: 600px; height: 600px; margin-top: 120px;" id="myChart5"></canvas>
-    </div>
-
-
-    <div style="width: 411px;
-    height: 36px;
-    background-color: #00b050;
-    margin-right: 10px;
-    margin-top: -102px;
-    margin-left: 1014px;"></div>
-
-
-    <div style="width: 411px;
-    height: 36px;
-    background-color: #92d051;
-    margin-right: 10px;
-    margin-top: -72px;
-    margin-left: 1014px;"></div>
-
-
-    <div style="    width: 411px;
-    height: 273px;
-    background-color: #ffff00;
-    margin-right: 10px;
-    margin-top: -309px;
-    margin-left: 1014px;"></div>
-
-
-    <div style="width: 411px;
-    height: 7px;
-    background-color: #ff6500;
-    margin-right: 10px;
-    margin-top: -280px;
-    margin-left: 1014px;"></div>
-
-
-    <div style="margin-top: 525px;">
-        <div style="margin-right: 900px; font-size: 25px; text-align: center;">
-            <div>AQI 2024-04-07 11:00:00 UTC</div>
-            <div>Dominating: 03</div>
-        </div>
-
-        <!-- <div style="
-    font-size: 25px;
-    text-align: center;">
-            <div>AQI 2024-04-08 11:00:00 UTC</div>
-            <div>Dominating: 03</div>
-        </div> -->
-
-
-        <div id="guage"></div>
-        <div id="guage1" style="margin-top: -300px; margin-left: 498px;"></div>
-        <div id="guage2" style="margin-top: -300px; margin-left: 998px;"></div>
-        <div id="guage3" style="margin-top: 100px; margin-left: 253px;"></div>
-        <div id="guage4" style="margin-top: -300px; margin-left: 752px;"></div>
-    </div>
-    <div>
-
-
-    </div style="margin-top: 70px;">
-    <div
-        style="width: 666px; height: 300px; background-color: #f0f0f0; border: 2px solid #333; border-radius: 10px; padding: 20px; text-align: center; margin: 0 auto; margin-top: 50px; margin-right: 300px;">
-        HEALTH ADIVISORY
-
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #c00000; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Severe: Affects healthy people and seriously impacts those with existing diseases</div>
-        </div>
-
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #ff0000; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Very Poor: Respiratory illness on prolonged exposure</div>
-        </div>
-
-
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #ff6500; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Poor: Breathing discomfort to most people on prolonged exposure </div>
-        </div>
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #ffff00; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Moderate: Breathing discomfort to people with lungs, asthma and haert diseases</div>
-        </div>
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #92d051; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Satisfactory: Minor breathing discomfort to sensative people</div>
-        </div>
-
-        <div style="display: flex; align-items: center; margin-top: 30px;">
-            <div style="width: 40px; height: 10px; background-color:  #00b050; border-radius: 5px;"></div>
-            <div style="margin-left: 10px; font-family: Arial, sans-serif; font-size: 12px; text-transform: uppercase;">
-                Good: Minimal impact</div>
-        </div>
-
-
-
-    </div>
-
-    <!-- Include jQuery for easier JavaScript handling -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
     <script>
-        $(document).ready(function () {
-            $('#printButton').on('click', function () {
-                window.print();
-                return false; // Prevent default behavior of the link
+        var map = L.map('map').setView([20.5937, 78.9629], 5);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var weatherData = <?php echo json_encode($weather_data); ?>;
+        console.log("Weather Data:", weatherData);
+
+        function updateMarkerInfo(data) {
+            document.getElementById('marker-station').textContent = data.station;
+            document.getElementById('max-value').textContent = data.max;
+            document.getElementById('min-value').textContent = data.min;
+            document.getElementById('lastupdate').textContent = data.lastupdate;
+            document.getElementById('airqualityindexvalue').textContent = data.airqualityindexvalue;
+
+            var aqiColor = getColor(data.airqualityindexvalue);
+            var aqiText = getAQIText(data.airqualityindexvalue);
+            var aqiTextwarning = getAQITextwarning(data.airqualityindexvalue);
+
+            var mainContainer = document.getElementById('marker-info-container');
+            mainContainer.style.backgroundColor = aqiColor;
+            mainContainer.innerHTML = `
+        <div class="marker-info-box">
+            <div id="marker-station">${data.station}</div>
+           <div class="aqi-color-wrapper">
+    <div class="aqi-color" style="background-color: ${aqiColor};">
+        <span>${aqiText}</span>
+    </div>
+    <p style="margin-top: 5px;"><span id="lastupdate">${data.lastupdate}</span></p>
+</div>
+
+         <p style="display: flex; align-items: center;margin-top: -39px;">
+    <b><i class="fa fa-thermometer-half" aria-hidden="true"></i> <span id="max-value" style="margin-left: 5px;">${data.max}</span></b>
+    <b style="margin-left: 20px;"><i class="fa-solid fa-droplet"></i> <span id="min-value" style="margin-left: 5px;">${data.min}</span></b>
+</p>
+
+            <div style="    font-size: 89px;margin-left: 25%;"><span id="airqualityindexvalue">${data.airqualityindexvalue}</span></div>
+            <!-- AQI Bar -->
+            <div class="aqi-bar">
+                <div class="aqi-bar-inner" style="width: ${getAQIBarWidth(data.airqualityindexvalue)};"></div>
+                <div class="aqi-point" id="aqi-point" style="left: ${getAQIPointPosition(data.airqualityindexvalue)}; background-color: ${aqiColor};"></div>
+            </div>
+            <!-- End AQI Bar -->
+
+            <!-- AQI Scale -->
+            <div class="aqi-scale">
+                <span>0</span>
+                <span>50</span>
+                <span>100</span>
+                <span>150</span>
+                <span>200</span>
+                <span>300</span>
+                <span>400</span>
+                <span>500</span>
+            </div>
+            <!-- End AQI Scale -->
+
+  <hr class="separator" />
+  <div style="display: flex; align-items: center;">
+    <div class="aqi-color1" style="background-color: ${aqiColor}; width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;"></div>
+    <span>${aqiTextwarning}</span>
+</div>
+
+  <hr class="separator" />
+
+                    <div class="marker-info-box" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;height: 11%;">
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('PM2.5', data)}</span>
+                            <b>PM2.5</b>
+                        </div>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('PM10', data)}</span>
+                            <b>PM10</b>
+                        </div>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('NO2', data)}</span>
+                            <b>NO2</b>
+                        </div>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('CO', data)}</span>
+                            <b>CO</b>
+                        </div>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('SO2', data)}</span>
+                            <b>SO2</b>
+                        </div>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('O3', data)}</span>
+                            <b>O3</b>
+                        </div>
+                </div>
+  
+    
+   
+    `;
+        }
+
+        function getAvgValue(indexid, data) {
+            var avgData = weatherData.find(item => item.station === data.station && item.indexid === indexid);
+            return avgData ? avgData.avg : 'N/A';
+        }
+
+
+
+
+        function getColor(aqi) {
+            if (isNaN(aqi) || aqi === 'NA') {
+                return "#000000"; // Black color for NA or undefined values
+            }
+            if (aqi <= 50) return "#479B55";
+            if (aqi <= 100) return "#86ce00";
+            if (aqi <= 200) return "#F6F926";
+            if (aqi <= 300) return "#FF9616";
+            if (aqi <= 400) return "#FB0DOD";
+            return "#AF0038";
+        }
+
+        function getAQIText(aqi) {
+            if (isNaN(aqi) || aqi === 'NA') return "NA"; // Handle 'NA' or undefined values
+            if (aqi <= 50) return "Good";
+            if (aqi <= 100) return "Satisfactory";
+            if (aqi <= 200) return "Moderate";
+            if (aqi <= 300) return "Poor";
+            if (aqi <= 400) return "Very Poor";
+            return "Severe";
+        }
+
+        function getAQITextwarning(aqi) {
+            if (aqi <= 50) return 'Air quality is considered satisfactory, and air pollution poses little or no risk';
+            if (aqi <= 100) return 'Air quality is acceptable; however, there may be some pollution for some pollutants for sensitive people';
+            if (aqi <= 150) return 'Members of sensitive groups may experience health effects. The general public is not likely to be affected.';
+            if (aqi <= 200) return 'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects';
+            if (aqi <= 300) return 'Health alert: everyone may experience more serious health effects';
+            return 'Health warnings of emergency conditions. The entire population is more likely to be affected';
+        }
+        // Function to get AQI bar width based on AQI value
+        function getAQIBarWidth(aqi) {
+            if (isNaN(aqi) || aqi === 'NA') return '0%'; // Handle 'NA' or undefined values
+            return `${Math.min((aqi / 500) * 100, 100)}%`;
+        }
+
+        // Function to get AQI point position based on AQI value
+        function getAQIPointPosition(aqi) {
+            if (isNaN(aqi) || aqi === 'NA') return '0%'; // Handle 'NA' or undefined values
+            return `${Math.min((aqi / 500) * 100, 100)}%`;
+        }
+
+        function getAQISizeClass(aqi) {
+            if (aqi <= 50) {
+                return 'small';
+            } else if (aqi <= 100) {
+                return 'medium';
+            } else {
+                return 'large';
+            }
+        }
+
+
+        function createAQIMarker(data) {
+            var aqiColor = getColor(data.airqualityindexvalue);
+
+            var markerIcon = L.divIcon({
+                className: 'custom-marker',
+                html: `<div class="aqi-value" style="background-color: ${aqiColor};">${data.airqualityindexvalue}</div>`,
+                iconSize: [30, 30],
+                iconAnchor: [15, 30]
             });
+
+            var marker = L.marker([parseFloat(data.latitude), parseFloat(data.longitude)], {
+                icon: markerIcon
+            }).addTo(map);
+
+            marker.on('click', function (e) {
+                updateMarkerInfo(data);
+            });
+        }
+
+        weatherData.forEach(function (data) {
+            if (data.latitude && data.longitude) {
+                createAQIMarker(data);
+            }
         });
+
+        const defaultStation = weatherData.find(data => data.station.includes("Lodhi Road, Delhi - IMD"));
+        if (defaultStation) {
+            updateMarkerInfo(defaultStation);
+        }
     </script>
-    <script>
-
-
-
-        var year = <?php echo json_encode($year); ?>;
-        var month = <?php echo json_encode($mn); ?>;
-        var day = <?php echo json_encode($day); ?>;
-        var hour = <?php echo json_encode($hr); ?>;
-
-
-        // PM2.5 CHART
-
-        var pm25 = <?php echo json_encode($pm25); ?>;
-        var pm25_std = <?php echo json_encode($pm25_std); ?>;
-
-        var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: pm25.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'pm25_std',
-                    data: pm25_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'pm25',
-                    data: pm25,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }
-                ]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 400,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (value === 0 || value === 50 || value === 100 || value === 150 || value === 200 || value === 250 || value === 300 || value === 350 || value === 400) {
-                                    return value.toString();
-                                } else {
-                                    return value;
-                                }
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-
-
-
-
-
-        // PM10 CHART
-
-        var pm10 = <?php echo json_encode($pm10); ?>;
-        var pm10_std = <?php echo json_encode($pm10_std); ?>;
-
-        var ctx = document.getElementById('myChart1').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: pm10.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'pm10_std',
-                    data: pm10_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'pm10',
-                    data: pm10,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 500,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (value === 0 || value === 100 || value === 200 || value === 300 || value === 400 || value === 500) {
-                                    return value.toString();
-                                }
-                                return '';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // CO CHART
-
-
-        var co = <?php echo json_encode($co); ?>;
-        var co_std = <?php echo json_encode($co_std); ?>;
-
-        var ctx = document.getElementById('myChart2').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: co.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'co_std',
-                    data: co_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'co',
-                    data: co,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 14000,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (
-                                    value === 0 ||
-                                    value === 2000 ||
-                                    value === 4000 ||
-                                    value === 6000 ||
-                                    value === 8000 ||
-                                    value === 10000 ||
-                                    value === 12000 ||
-                                    value === 14000
-                                ) {
-                                    return value.toString();
-                                }
-                                return ''; // Return an empty string for other values to hide the ticks
-                            }
-                        }
-                    }
-
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-
-        // NO2 CHARTS
-
-
-        var no2 = <?php echo json_encode($no2); ?>;
-        var no2_std = <?php echo json_encode($no2_std); ?>;
-
-        var ctx = document.getElementById('myChart3').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: no2.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'no2_std',
-                    data: no2_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'no2',
-                    data: no2,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 250,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (value === 0 || value === 50 || value === 100 || value === 150 || value === 200 || value === 250) {
-                                    return value.toString();
-                                }
-                                return '';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-
-        // O3 CHARTS
-
-
-        var o3 = <?php echo json_encode($o3); ?>;
-        var o3_std = <?php echo json_encode($o3_std); ?>;
-
-        var ctx = document.getElementById('myChart4').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: o3.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'o3_std',
-                    data: o3_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'o3',
-                    data: o3,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 250,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (value === 0 || value === 50 || value === 100 || value === 150 || value === 200 || value === 250) {
-                                    return value.toString();
-                                }
-                                return '';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // SO2 CHARTS
-
-
-
-        var so2 = <?php echo json_encode($so2); ?>;
-        var so2_std = <?php echo json_encode($so2_std); ?>;
-
-        var ctx = document.getElementById('myChart5').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: so2.map((value, index) => day[index] + '/' + month[index] + '/' + year[index]),
-                datasets: [{
-                    label: 'so2_std',
-                    data: so2_std,
-                    backgroundColor: 'black',
-                    borderColor: 'black',
-                    borderWidth: 0.5
-                },
-                {
-                    label: 'so2',
-                    data: so2,
-                    borderColor: 'black',
-                    borderWidth: 1,
-                    type: 'line',
-                    pointRadius: 0,
-                    cubicInterpolationMode: 'monotone'
-                }]
-            },
-            options: {
-                scales: {
-                    x: {
-                        min: 0,
-                        max: 96,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (index === 0) {
-                                    return day[0] + '/' + month[0] + '/' + year[0];
-                                } else if (index === 24) {
-                                    return day[24] + '/' + month[24] + '/' + year[24];
-                                } else if (index === 48) {
-                                    return day[48] + '/' + month[48] + '/' + year[48];
-                                } else if (index === 72) {
-                                    return day[72] + '/' + month[72] + '/' + year[72];
-                                } else if (index === 90) {
-                                    return day[90] + '/' + month[94] + '/' + year[94];
-                                }
-                                return '';
-                            }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        min: 0,
-                        max: 400,
-                        beginAtZero: true,
-                        ticks: {
-                            color: 'black',
-                            callback: function (value, index, values) {
-                                if (value === 0 || value === 50 || value === 100 || value === 150 || value === 200 || value === 250 || value === 300 || value === 350 || value === 400) {
-                                    return value.toString();
-                                }
-                                return '';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.parsed.y;
-                                return label;
-                            },
-                            title: function (context) {
-                                var index = context[0].dataIndex;
-                                return day[index] + '/' + month[index] + '/' + year[index] + '  ' + hour[index] + 'hr';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-
-        // GUAGE
-
-        var data = [
-            {
-                domain: { x: [0, 1], y: [0, 1] },
-                value: 50,
-                title: { text: "Speed" },
-                type: "indicator",
-                mode: "gauge+number",
-                gauge: {
-                    axis: { range: [0, 500] },
-                    steps: [
-                        { range: [0, 50], color: "#00b050" },
-                        { range: [50, 100], color: "#92d051" },
-                        { range: [100, 200], color: "#ffff00" },
-                        { range: [200, 300], color: "#ff6500" },
-                        { range: [300, 400], color: "#ff0000" },
-                        { range: [400, 500], color: "#c00000" }
-                    ],
-                    threshold: {
-                        line: { color: "black", width: 4 },
-                        thickness: 0.75,
-                        value: 50
-                    },
-                    bar: { color: "black" }
-                }
-            }
-        ];
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage', data, layout);
-
-        var data = [
-            {
-                domain: { x: [0, 1], y: [0, 1] },
-                value: 100,
-                title: { text: "Speed" },
-                type: "indicator",
-                mode: "gauge+number",
-                gauge: {
-                    axis: { range: [0, 500] },
-                    steps: [
-                        { range: [0, 50], color: "#00b050" },
-                        { range: [50, 100], color: "#92d051" },
-                        { range: [100, 200], color: "#ffff00" },
-                        { range: [200, 300], color: "#ff6500" },
-                        { range: [300, 400], color: "#ff0000" },
-                        { range: [400, 500], color: "#c00000" }
-                    ],
-                    threshold: {
-                        line: { color: "black", width: 4 },
-                        thickness: 0.75,
-                        value: 100
-                    },
-                    bar: { color: "black" }
-                }
-            }
-        ];
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage1', data, layout);
-
-
-
-
-
-        var data = [
-            {
-                domain: { x: [0, 1], y: [0, 1] },
-                value: 150,
-                title: { text: "Speed" },
-                type: "indicator",
-                mode: "gauge+number",
-                gauge: {
-                    axis: { range: [0, 500] },
-                    steps: [
-                        { range: [0, 50], color: "#00b050" },
-                        { range: [50, 100], color: "#92d051" },
-                        { range: [100, 200], color: "#ffff00" },
-                        { range: [200, 300], color: "#ff6500" },
-                        { range: [300, 400], color: "#ff0000" },
-                        { range: [400, 500], color: "#c00000" }
-                    ],
-                    threshold: {
-                        line: { color: "black", width: 4 },
-                        thickness: 0.75,
-                        value: 150
-                    },
-                    bar: { color: "black" }
-                }
-            }
-        ];
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage2', data, layout);
-
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage', data, layout);
-
-        var data = [
-            {
-                domain: { x: [0, 1], y: [0, 1] },
-                value: 200,
-                title: { text: "Speed" },
-                type: "indicator",
-                mode: "gauge+number",
-                gauge: {
-                    axis: { range: [0, 500] },
-                    steps: [
-                        { range: [0, 50], color: "#00b050" },
-                        { range: [50, 100], color: "#92d051" },
-                        { range: [100, 200], color: "#ffff00" },
-                        { range: [200, 300], color: "#ff6500" },
-                        { range: [300, 400], color: "#ff0000" },
-                        { range: [400, 500], color: "#c00000" }
-                    ],
-                    threshold: {
-                        line: { color: "black", width: 4 },
-                        thickness: 0.75,
-                        value: 200
-                    },
-                    bar: { color: "black" }
-                }
-            }
-        ];
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage3', data, layout);
-
-
-
-
-
-        var data = [
-            {
-                domain: { x: [0, 1], y: [0, 1] },
-                value: 250,
-                title: { text: "Speed" },
-                type: "indicator",
-                mode: "gauge+number",
-                gauge: {
-                    axis: { range: [0, 500] },
-                    steps: [
-                        { range: [0, 50], color: "#00b050" },
-                        { range: [50, 100], color: "#92d051" },
-                        { range: [100, 200], color: "#ffff00" },
-                        { range: [200, 300], color: "#ff6500" },
-                        { range: [300, 400], color: "#ff0000" },
-                        { range: [400, 500], color: "#c00000" }
-                    ],
-                    threshold: {
-                        line: { color: "black", width: 4 },
-                        thickness: 0.75,
-                        value: 250
-                    },
-                    bar: { color: "black" }
-                }
-            }
-        ];
-
-        var layout = { width: 500, height: 300, margin: { t: 0, b: 0 } };
-        Plotly.newPlot('guage4', data, layout);
-    </script>
-
-
-
-
-
 </body>
 
 </html>
+

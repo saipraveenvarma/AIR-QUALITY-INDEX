@@ -8,17 +8,9 @@ class Welcome_model extends CI_Model
         $this->load->database();
     }
 
-    public function First()
-    {
-        $query = $this->db->get('aqf_table');
-    
-        if ($query->num_rows() > 0) {
-
-            return $query->result_array();
-        } else {
-
-            return false;
-        }
+    public function get_all_weather_data() {
+        $query = $this->db->get('current_aqi');
+        return $query->result();
     }
     
 }
