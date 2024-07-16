@@ -202,7 +202,7 @@
             <div class="marker-info-box" id="marker-info">
                 <div id="marker-station" style="position: absolute; top: 0; right: 0; margin: 10px;">${data.station}
                 </div>
-                <div class="aqi-color-wrapper ${getAQISizeClass(data.airqualityindexvalue)}">
+                <div class="aqi-color-wrapper ${getAQISizeClass(data.airQualityIndexValue)}">
                     <div class="aqi-color"
                         style="background-color: ${aqiColor}; display: flex; align-items: center; position: absolute; right: 0; margin: 10px;">
                         <span>${aqiText}</span>
@@ -219,7 +219,7 @@
                 </p>
 
 
-                <p><b>Air Quality Index:</b> <span id="airqualityindexvalue">${data.airqualityindexvalue}</span></p>
+                <p><b>Air Quality Index:</b> <span id="airQualityIndexValue">${data.airQualityIndexValue}</span></p>
 
 
 
@@ -247,11 +247,11 @@
             document.getElementById('max-value').textContent = data.max;
             document.getElementById('min-value').textContent = data.min;
             document.getElementById('lastupdate').textContent = data.lastupdate;
-            document.getElementById('airqualityindexvalue').textContent = data.airqualityindexvalue;
+            document.getElementById('airQualityIndexValue').textContent = data.airQualityIndexValue;
 
-            var aqiColor = getColor(data.airqualityindexvalue);
-            var aqiText = getAQIText(data.airqualityindexvalue);
-            var aqiTextwarning = getAQITextwarning(data.airqualityindexvalue);
+            var aqiColor = getColor(data.airQualityIndexValue);
+            var aqiText = getAQIText(data.airQualityIndexValue);
+            var aqiTextwarning = getAQITextwarning(data.airQualityIndexValue);
 
             var mainContainer = document.getElementById('marker-info-container');
             mainContainer.style.backgroundColor = aqiColor;
@@ -270,11 +270,11 @@
     <b style="margin-left: 20px;"><i class="fa-solid fa-droplet"></i> <span id="min-value" style="margin-left: 5px;">${data.min}</span></b>
 </p>
 
-            <div style="    font-size: 89px;margin-left: 25%;"><span id="airqualityindexvalue">${data.airqualityindexvalue}</span></div>
+            <div style="    font-size: 89px;margin-left: 25%;"><span id="airQualityIndexValue">${data.airQualityIndexValue}</span></div>
             <!-- AQI Bar -->
             <div class="aqi-bar">
-                <div class="aqi-bar-inner" style="width: ${getAQIBarWidth(data.airqualityindexvalue)};"></div>
-                <div class="aqi-point" id="aqi-point" style="left: ${getAQIPointPosition(data.airqualityindexvalue)}; background-color: ${aqiColor};"></div>
+                <div class="aqi-bar-inner" style="width: ${getAQIBarWidth(data.airQualityIndexValue)};"></div>
+                <div class="aqi-point" id="aqi-point" style="left: ${getAQIPointPosition(data.airQualityIndexValue)}; background-color: ${aqiColor};"></div>
             </div>
             <!-- End AQI Bar -->
 
@@ -299,7 +299,7 @@
 
   <hr class="separator" />
 
-                    <div class="marker-info-box" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;height: 11%;">
+                    <div class="marker-info-box" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;height: 21%;">
 <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('PM2.5', data)}</span>
                             <b>PM2.5</b>
                         </div>
@@ -387,11 +387,11 @@
 
 
         function createAQIMarker(data) {
-            var aqiColor = getColor(data.airqualityindexvalue);
+            var aqiColor = getColor(data.airQualityIndexValue);
 
             var markerIcon = L.divIcon({
                 className: 'custom-marker',
-                html: `<div class="aqi-value" style="background-color: ${aqiColor};">${data.airqualityindexvalue}</div>`,
+                html: `<div class="aqi-value" style="background-color: ${aqiColor};">${data.airQualityIndexValue}</div>`,
                 iconSize: [30, 30],
                 iconAnchor: [15, 30]
             });
