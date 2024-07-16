@@ -107,25 +107,22 @@
             border-radius: 3px;
             display: flex;
             justify-content: flex-end;
-            /* Align content to the right within the box */
             align-items: center;
             color: white;
-            /* Ensure text color is visible against background */
             padding-right: 10px;
-            /* Add padding to the right side to position text */
             box-sizing: border-box;
-            /* Ensure padding is included in the width */
         }
+
         .aqi-color1 {
-    height: 30px; /* Adjust height to match the circle diameter */
-    width: 30px; /* Adjust width to match the circle diameter */
-    border-radius: 50%; /* Make it a circle with 50% border-radius */
-    display: flex;
-    justify-content: center; /* Center content horizontally */
-    align-items: center; /* Center content vertically */
-    color: white; /* Text color */
-    background-color: #4CAF50; /* Example background color */
-}
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            background-color: #4CAF50;
+        }
 
 
         .aqi-color span {
@@ -185,13 +182,14 @@
             height: calc(100% - 10px);
             background-color: black;
         }
+
         .separator {
-        width: 100%;
-        border: none;
-        border-top: 1px solid #ddd;
-        margin: 10px 0; /* Adjust margin for spacing */
-    }
-    
+            width: 100%;
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 10px 0;
+            /* Adjust margin for spacing */
+        }
     </style>
 </head>
 
@@ -293,7 +291,7 @@
 
   <hr class="separator" />
   <div style="display: flex; align-items: center;">
-    <div class="aqi-color1" style="background-color: ${aqiColor}; width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;"></div>
+    <div class="aqi-color1" style="background-color: ${aqiColor}; width: 20px; height: 20px; border-radius: 50%; margin-right: 10px;"></div>
     <span>${aqiTextwarning}</span>
 </div>
 
@@ -356,13 +354,14 @@
         }
 
         function getAQITextwarning(aqi) {
-            if (aqi <= 50) return 'Air quality is considered satisfactory, and air pollution poses little or no risk';
-            if (aqi <= 100) return 'Air quality is acceptable; however, there may be some pollution for some pollutants for sensitive people';
-            if (aqi <= 150) return 'Members of sensitive groups may experience health effects. The general public is not likely to be affected.';
-            if (aqi <= 200) return 'Everyone may begin to experience health effects; members of sensitive groups may experience more serious health effects';
-            if (aqi <= 300) return 'Health alert: everyone may experience more serious health effects';
-            return 'Health warnings of emergency conditions. The entire population is more likely to be affected';
-        }
+    if (aqi <= 50) return '<b>GOOD:</b><br>Minimal impact.';
+    if (aqi <= 100) return '<b>SATISFACTORY:</b><br>Minor breathing discomfort to sensitive people.';
+    if (aqi <= 150) return '<b>MODERATE:</b><br>Breathing discomfort to most people on prolonged exposure.';
+    if (aqi <= 200) return '<b>POOR:</b><br>Breathing discomfort to most people on prolonged exposure.';
+    if (aqi <= 300) return '<b>VERY POOR:</b><br>Respiratory illness on prolonged exposure.';
+    return '<b>SEVERE:</b><br>Healthy people and seriously impacts those with existing diseases.';
+}
+
         // Function to get AQI bar width based on AQI value
         function getAQIBarWidth(aqi) {
             if (isNaN(aqi) || aqi === 'NA') return '0%'; // Handle 'NA' or undefined values
@@ -419,4 +418,3 @@
 </body>
 
 </html>
-
