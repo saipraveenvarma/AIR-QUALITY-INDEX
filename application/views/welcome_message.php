@@ -10,6 +10,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
     <style>
         body,
         html {
@@ -21,13 +22,20 @@
 
         #header {
             width: 100%;
-            background-color: white;
+            background: linear-gradient(to right,
+                    rgb(71, 155, 85) 0%,
+                    rgb(134, 206, 0) 20%,
+                    rgb(246, 249, 38) 40%,
+                    rgb(255, 150, 22) 60%,
+                    rgb(251, 13, 13) 80%,
+                    rgb(175, 0, 56) 100%);
             color: black;
             text-align: center;
             padding: 10px 0;
             font-size: 24px;
             font-weight: bold;
         }
+
 
         #content {
             display: flex;
@@ -237,6 +245,23 @@
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
+        _dist_geojson = "DATA/INDIA_STATE.json";
+        var geojson = new L.GeoJSON.AJAX(_dist_geojson, {
+            style: function (feature) {
+                return {
+                    color: 'black',
+                    fillColor: 'transparent',
+                    opacity: 0.5,
+                    fillOpacity: 0.0,
+                    weight: 2
+                };
+            }
+        });
+
+        geojson.on('data:loaded', function () {
+            geojson.addTo(map);
+        });
+
         var weatherData = <?php echo json_encode($weather_data); ?>;
         console.log("Weather Data:", weatherData);
 
@@ -257,9 +282,9 @@
         <div class="marker-info-box">
             <div id="marker-station">${data.station}</div>
            <div class="aqi-color-wrapper">
-    <div class="aqi-color" style="background-color: ${aqiColor};">
-        <span>${aqiText}</span>
-    </div>
+  <div class="aqi-color" style="background-color: ${aqiColor}; display: flex; justify-content: center; align-items: center;">
+    <div>${aqiText}</div>
+</div>
     <p style="margin-top: 5px;"><span id="lastupdate">${data.lastupdate}</span></p>
 </div>
 
@@ -279,9 +304,7 @@
             <!-- AQI Scale -->
             <div class="aqi-scale">
                 <span>0</span>
-                <span>50</span>
                 <span>100</span>
-                <span>150</span>
                 <span>200</span>
                 <span>300</span>
                 <span>400</span>
@@ -354,13 +377,18 @@
         }
 
         function getAQITextwarning(aqi) {
-    if (aqi <= 50) return '<b>GOOD:</b><br>Minimal impact.';
-    if (aqi <= 100) return '<b>SATISFACTORY:</b><br>Minor breathing discomfort to sensitive people.';
-    if (aqi <= 150) return '<b>MODERATE:</b><br>Breathing discomfort to most people on prolonged exposure.';
-    if (aqi <= 200) return '<b>POOR:</b><br>Breathing discomfort to most people on prolonged exposure.';
-    if (aqi <= 300) return '<b>VERY POOR:</b><br>Respiratory illness on prolonged exposure.';
-    return '<b>SEVERE:</b><br>Healthy people and seriously impacts those with existing diseases.';
-}
+            if (aqi === null || aqi === undefined || isNaN(aqi)) {
+                return 'N/A';
+            }
+
+            if (aqi <= 50) return '<b>GOOD:</b><br>Minimal impact.';
+            if (aqi <= 100) return '<b>SATISFACTORY:</b><br>Minor breathing discomfort to sensitive people.';
+            if (aqi <= 150) return '<b>MODERATE:</b><br>Breathing discomfort to most people on prolonged exposure.';
+            if (aqi <= 200) return '<b>POOR:</b><br>Breathing discomfort to most people on prolonged exposure.';
+            if (aqi <= 300) return '<b>VERY POOR:</b><br>Respiratory illness on prolonged exposure.';
+            return '<b>SEVERE:</b><br>Healthy people and seriously impacts those with existing diseases.';
+        }
+
 
         // Function to get AQI bar width based on AQI value
         function getAQIBarWidth(aqi) {
