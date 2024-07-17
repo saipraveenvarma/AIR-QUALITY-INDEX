@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AQI</title>
+    <link rel="shortcut icon" href="https://mausam.imd.gov.in/responsive/img/logo/imd_icon.ico">
+
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <!-- Leaflet JS -->
@@ -22,19 +24,14 @@
 
         #header {
             width: 100%;
-            background: linear-gradient(to right,
-                    rgb(71, 155, 85) 0%,
-                    rgb(134, 206, 0) 20%,
-                    rgb(246, 249, 38) 40%,
-                    rgb(255, 150, 22) 60%,
-                    rgb(251, 13, 13) 80%,
-                    rgb(175, 0, 56) 100%);
+            background-color: #87CEEB;
             color: black;
             text-align: center;
             padding: 10px 0;
             font-size: 24px;
             font-weight: bold;
         }
+
 
 
         #content {
@@ -54,7 +51,6 @@
             flex-direction: column;
             background-color: #f0f0f0;
             overflow-y: auto;
-            padding: 10px;
             transition: background-color 0.3s ease;
         }
 
@@ -202,7 +198,14 @@
 </head>
 
 <body>
-    <div id="header">AQI</div>
+    <div id="header"
+        style="display: flex; align-items: center; justify-content: space-between; height: 60px; width: calc(100% - 60px); position: relative;padding: 0 30px;">
+        <img src="img/emblem.png" alt="Emblem of India" height="50" style="margin-right: auto; margin-left: 10px;">
+        <div style="flex: 1; text-align: center;">
+            <span style="font-family: 'Times New Roman'; font-size: 24px; font-weight: bold; color:">AIR QUALITY INDEX</span>
+        </div>
+        <img src="img/imd_logo.png" alt="IMD logo" height="50" style="margin-left: auto; margin-right: -10px;">
+    </div>
     <div id="content">
         <div id="marker-info-container">
             <div class="marker-info-box" id="marker-info">
@@ -239,7 +242,7 @@
     </div>
 
     <script>
-        var map = L.map('map').setView([20.5937, 78.9629], 5);
+        var map = L.map('map').setView([23.665365, 78.661606], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -293,7 +296,9 @@
     <b style="margin-left: 20px;"><i class="fa-solid fa-droplet"></i> <span id="min-value" style="margin-left: 5px;">${data.min}</span></b>
 </p>
 
-            <div style="    font-size: 89px;margin-left: 25%;"><span id="airQualityIndexValue">${data.airQualityIndexValue}</span></div>
+            <div style="    font-size: 80px;margin-left: 25%;"><span id="airQualityIndexValue">${data.airQualityIndexValue}</span></div>
+                <div style="font-size: 15px;margin-left: 30%;">IND AQI</div><br>
+
             <!-- AQI Bar -->
             <div class="aqi-bar">
                 <div class="aqi-bar-inner" style="width: ${getAQIBarWidth(data.airQualityIndexValue)};"></div>
@@ -320,24 +325,36 @@
 
   <hr class="separator" />
 
-                    <div class="marker-info-box" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;height: 21%;">
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('PM2.5', data)}</span>
-                            <b>PM2.5</b>
+                    <div class="marker-info-box" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;height: 15%;">
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">          
+<b style="font-size: 0.9em;">PM2.5</b>
+
+       <span style="font-size: 1em;">${getAvgValue('PM2.5', data)}</span>
                         </div>
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('PM10', data)}</span>
-                            <b>PM10</b>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">   
+                            <b style="font-size: 0.9em;">PM10</b>
+
+   <span style="font-size: 1em;">${getAvgValue('PM10', data)}</span>
                         </div>
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('NO2', data)}</span>
-                            <b>NO2</b>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">          
+                            <b style="font-size: 0.9em;">NO2</b>
+
+               <span style="font-size: 1em;">${getAvgValue('NO2', data)}</span>
                         </div>
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('CO', data)}</span>
-                            <b>CO</b>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">        
+                            <b style="font-size: 0.9em;">CO</b>
+
+               <span style="font-size: 1em;">${getAvgValue('CO', data)}</span>
                         </div>
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('SO2', data)}</span>
-                            <b>SO2</b>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">       
+                            <b style="font-size: 0.9em;">SO2</b>
+
+               <span style="font-size: 1em;">${getAvgValue('SO2', data)}</span>
                         </div>
-<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">                            <span style="font-size: 1.5em;">${getAvgValue('O3', data)}</span>
-                            <b>O3</b>
+<div style="display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; padding: 10px; border: 1px solid #fff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); width: 30%; background-color: white;">          
+                            <b style="font-size: 0.9em;">O3</b>
+
+                 <span style="font-size: 1em;">${getAvgValue('O3', data)}</span>
                         </div>
                 </div>
   
