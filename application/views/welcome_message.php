@@ -286,7 +286,7 @@
             <div id="marker-station">${data.station}</div>
            <div class="aqi-color-wrapper">
   <div class="aqi-color" style="background-color: ${aqiColor}; display: flex; justify-content: center; align-items: center;">
-    <div>${aqiText}</div>
+<div style="color:black;">${aqiText}</div>
 </div>
     <p style="margin-top: 5px;"><span id="lastupdate">${data.lastupdate}</span></p>
 </div>
