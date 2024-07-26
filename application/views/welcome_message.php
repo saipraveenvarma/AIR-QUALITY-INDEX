@@ -13,6 +13,10 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
     <style>
         body,
         html {
@@ -202,7 +206,8 @@
         style="display: flex; align-items: center; justify-content: space-between; height: 60px; width: calc(100% - 60px); position: relative;padding: 0 30px;">
         <img src="img/emblem.png" alt="Emblem of India" height="50" style="margin-right: auto; margin-left: 10px;">
         <div style="flex: 1; text-align: center;">
-            <span style="font-family: 'Times New Roman'; font-size: 24px; font-weight: bold; color:">AIR QUALITY INDEX</span>
+            <span style="font-family: 'Times New Roman'; font-size: 24px; font-weight: bold; color:">AIR QUALITY
+                INDEX</span>
         </div>
         <img src="img/imd_logo.png" alt="IMD logo" height="50" style="margin-left: auto; margin-right: -10px;">
     </div>
@@ -233,10 +238,6 @@
 
 
             </div>
-            <div class="marker-info-box" id="empty-box-1">
-
-            </div>
-            <div class="marker-info-box2" id="empty-box-2"></div>
         </div>
         <div id="map"></div>
     </div>
@@ -268,6 +269,9 @@
         var weatherData = <?php echo json_encode($weather_data); ?>;
         console.log("Weather Data:", weatherData);
 
+        var sixhours_data = <?php echo json_encode($sixhours_data); ?>;
+        console.log("Six hours Data:", sixhours_data);
+
         function updateMarkerInfo(data) {
             document.getElementById('marker-station').textContent = data.station;
             document.getElementById('max-value').textContent = data.max;
@@ -288,7 +292,7 @@
   <div class="aqi-color" style="background-color: ${aqiColor}; display: flex; justify-content: center; align-items: center;">
 <div style="color:black;">${aqiText}</div>
 </div>
-    <p style="margin-top: 5px;"><span id="lastupdate">${data.lastupdate}</span></p>
+    <p style="margin-top: 5px;"><span id="lastupdate">${data.lastUpdate}</span></p>
 </div>
 
          <p style="display: flex; align-items: center;margin-top: -39px;">
@@ -356,6 +360,15 @@
 
                  <span style="font-size: 1em;">${getAvgValue('O3', data)}</span>
                         </div>
+
+
+                        
+            <!-- Existing HTML content -->
+<div class="sixhoursdata" id="sixhoursdata-container">
+                 <canvas id="line-chart-container" width="300" height="270"></canvas>
+ ${getSixHoursDataHTML(data.station)}
+          
+        </div>
                 </div>
   
     
@@ -363,10 +376,95 @@
     `;
         }
 
-        function getAvgValue(indexid, data) {
-            var avgData = weatherData.find(item => item.station === data.station && item.indexid === indexid);
+        function getAvgValue(indexId, data) {
+            var avgData = weatherData.find(item => item.station === data.station && item.indexId === indexId);
             return avgData ? avgData.avg : 'N/A';
         }
+
+       // Global chart data
+       let globalChartData = {
+            labels: [],
+            values: [],
+            message: ''
+        };
+
+        function getSixHoursDataHTML(station) {
+            const stationData = sixhours_data.filter(item => item.station === station);
+
+            if (stationData.length === 0) {
+                console.log('No data available for the selected station.');
+                globalChartData = { labels: [], values: [], message: 'No data available for the selected station.' };
+                return '<p>No data available for the selected station.</p>';
+            }
+
+            // Prepare arrays for labels and values
+            const labels = stationData.map(item => item.lastUpdate);
+            const values = stationData.map(item => item.airQualityIndexValue);
+
+            // Log data for debugging
+            console.log('Labels:', labels);
+            console.log('Values:', values);
+
+            // Update globalChartData
+            globalChartData = { labels: labels, values: values, message: '' };
+
+            // Return HTML
+            return stationData.map(item => `
+            <div class="six-hour-data-entry">
+            
+            </div>
+            `).join('');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('line-chart-container').getContext('2d');
+
+            if (!ctx) {
+                console.error('Canvas context not found.');
+                return;
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: globalChartData.labels,
+                    datasets: [{
+                        label: 'Sample Data',
+                        data: globalChartData.values,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Last Update'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Values'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            renderChart();
+        });
 
 
 

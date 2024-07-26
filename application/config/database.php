@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------
@@ -74,11 +74,11 @@ $active_group = 'default';
 $query_builder = TRUE;
 
 $db['default'] = array(
-	'dsn'	=> '',
-	'hostname' => 'localhost',
+	'dsn' => '',
+	'hostname' => '192.168.18.18',
 	'username' => 'postgres',
-	'password' => '1234',
-	'database' => 'AQF',
+	'password' => 'admin@123',
+	'database' => 'gis',
 	'dbdriver' => 'postgre',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
@@ -94,6 +94,12 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
+
+// 'hostname' => 'localhost',
+// 'username' => 'postgres',
+// 'password' => '1234',
+// 'database' => 'AQF',
 
 // 'hostname' => '192.168.18.18',
 // 	'username' => 'postgres',
