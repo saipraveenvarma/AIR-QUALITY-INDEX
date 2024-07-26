@@ -365,15 +365,16 @@
                         
             <!-- Existing HTML content -->
 <div class="sixhoursdata" id="sixhoursdata-container">
-                 <canvas id="line-chart-container" width="300" height="270"></canvas>
- ${getSixHoursDataHTML(data.station)}
-          
-        </div>
+    <canvas id="line-chart-container" width="300" height="270"></canvas>
+    ${getSixHoursDataHTML(data.station)}
+</div>
+
                 </div>
   
     
    
     `;
+    renderChart();
         }
 
         function getAvgValue(indexId, data) {
@@ -381,90 +382,122 @@
             return avgData ? avgData.avg : 'N/A';
         }
 
-       // Global chart data
-       let globalChartData = {
-            labels: [],
-            values: [],
-            message: ''
-        };
+      // Global chart instance
+let chartInstance = null;
 
-        function getSixHoursDataHTML(station) {
-            const stationData = sixhours_data.filter(item => item.station === station);
+// Global chart data
+let globalChartData = {
+    labels: [],
+    values: [],
+    message: ''
+};
 
-            if (stationData.length === 0) {
-                console.log('No data available for the selected station.');
-                globalChartData = { labels: [], values: [], message: 'No data available for the selected station.' };
-                return '<p>No data available for the selected station.</p>';
-            }
+function getSixHoursDataHTML(station) {
+    const stationData = sixhours_data.filter(item => item.station === station);
 
-            // Prepare arrays for labels and values
-            const labels = stationData.map(item => item.lastUpdate);
-            const values = stationData.map(item => item.airQualityIndexValue);
+    if (stationData.length === 0) {
+        console.log('No data available for the selected station.');
+        globalChartData = { labels: [], values: [], message: 'No data available for the selected station.' };
+        return '<p>No data available for the selected station.</p>';
+    }
 
-            // Log data for debugging
-            console.log('Labels:', labels);
-            console.log('Values:', values);
+    // Prepare arrays for labels and values
+    let labels = stationData.map(item => item.lastUpdate);
+    let values = stationData.map(item => item.airQualityIndexValue);
 
-            // Update globalChartData
-            globalChartData = { labels: labels, values: values, message: '' };
+    // Reverse the order of labels and values
+    labels = labels.reverse();
+    values = values.reverse();
 
-            // Return HTML
-            return stationData.map(item => `
-            <div class="six-hour-data-entry">
-            
-            </div>
-            `).join('');
-        }
+    // Log data for debugging
+    console.log('Reversed Labels:', labels);
+    console.log('Reversed Values:', values);
 
-        function renderChart() {
-            const ctx = document.getElementById('line-chart-container').getContext('2d');
+    // Update globalChartData
+    globalChartData = { labels: labels, values: values, message: '' };
+//console.log(globalChartData);
+//renderChart();
+    // Return HTML
+    return stationData.map(item => `
+       
+    `).join('');
+}
 
-            if (!ctx) {
-                console.error('Canvas context not found.');
-                return;
-            }
+function renderChart() {
+    const ctx = document.getElementById('line-chart-container').getContext('2d');
 
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: globalChartData.labels,
-                    datasets: [{
-                        label: 'Sample Data',
-                        data: globalChartData.values,
-                        fill: false,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Last Update'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Values'
-                            }
-                        }
-                    }
+    if (!ctx) {
+        console.error('Canvas context not found.');
+        return;
+    }
+
+    // Destroy the existing chart instance if it exists
+    if (chartInstance) {
+        chartInstance.destroy();
+    }
+    console.log(globalChartData);
+    // Create a new chart
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: globalChartData.labels,
+            datasets: [{
+                label: 'Sample Data',
+                data: globalChartData.values,
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
                 }
-            });
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Last Update'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Values'
+                    },
+                    ticks: {
+                        stepSize: 50,
+                        // callback: function (value) {
+                        //     if ([0, 100, 200, 300, 400, 500].includes(value)) {
+                        //         return value;
+                        //     }
+                        // }
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 500
+                }
+            }
         }
+    });
+}
 
-        document.addEventListener('DOMContentLoaded', function () {
-            renderChart();
-        });
+// Example function to trigger chart update
+function updateChart(station) {
+    getSixHoursDataHTML(station); // Fetch and process new data
+    renderChart(); // Render chart with updated data
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Initial rendering
+    renderChart();
+});
+
+
+
 
 
 
