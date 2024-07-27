@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn' => '',
-	'hostname' => '192.168.18.18',
-	'username' => 'postgres',
-	'password' => 'admin@123',
-	'database' => 'gis',
+	'hostname' => 'localhost',
+'username' => 'postgres',
+'password' => '1234',
+'database' => 'AQF',
 	'dbdriver' => 'postgre',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
