@@ -291,6 +291,9 @@
         var sixhours_data = <?php echo json_encode($sixhours_data); ?>;
         console.log("Six hours Data:", sixhours_data);
 
+        var week_data = <?php echo json_encode($sixhours_data); ?>;
+        console.log("week Data:", week_data);
+
         function updateMarkerInfo(data) {
             document.getElementById('marker-station').textContent = data.station;
             document.getElementById('max-value').textContent = data.max;
@@ -405,7 +408,6 @@
    
     `;
             renderChart();
-            renderChart1();
         }
 
         function getAvgValue(indexId, data) {
@@ -434,7 +436,7 @@
                 let date = new Date(item.lastUpdate);
                 let hours = date.getHours().toString().padStart(2, '0');
                 let minutes = date.getMinutes().toString().padStart(2, '0');
-                return `${hours}:${minutes}`; // Format the label as HH:MM
+                return `${hours}:${minutes}`; 
             });
 
             let values = stationData.map(item => item.airQualityIndexValue);
@@ -480,7 +482,7 @@
                     responsive: true,
                     plugins: {
                         legend: {
-                            display: false  // Remove the legend box
+                            display: false
                         }
                     },
                     scales: {
@@ -490,13 +492,13 @@
                                 text: '6 HOURS'
                             },
                             grid: {
-                                display: false  // Remove grid lines on the x-axis
+                                display: false
                             }
                         },
                         y: {
                             title: {
                                 display: true,
-                               
+
                             },
                             ticks: {
                                 stepSize: 50,
@@ -504,7 +506,7 @@
                             suggestedMin: 0,
                             suggestedMax: 500,
                             grid: {
-                                display: false  // Remove grid lines on the y-axis
+                                display: false
                             }
                         }
                     }
@@ -513,66 +515,7 @@
 
         }
 
-        function renderChart1() {
-            const ctx = document.getElementById('weekchart').getContext('2d');
-
-            if (!ctx) {
-                console.error('Canvas context not found.');
-                return;
-            }
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: globalChartData.labels,
-                    datasets: [{
-                        label: 'AQI',
-                        data: globalChartData.values,
-                        fill: false,
-                        borderColor: 'black',
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false  // Remove the legend box
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                              
-                            },
-                            grid: {
-                                display: false  // Remove grid lines on the x-axis
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'RANGE'
-                            },
-                            ticks: {
-                                stepSize: 50,
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 500,
-                            grid: {
-                                display: false  // Remove grid lines on the y-axis
-                            }
-                        }
-                    }
-                }
-            });
-
-        }
+        
 
         function updateChart(station) {
             getSixHoursDataHTML(station);
@@ -580,37 +523,31 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Initial rendering
             renderChart();
         });
 
         function showTab(tab) {
-    // Hide all canvases
-    document.getElementById('sixhourschart').style.display = 'none';
-    document.getElementById('weekchart').style.display = 'none';
-    document.getElementById('monthchart').style.display = 'none';
+            document.getElementById('sixhourschart').style.display = 'none';
+            document.getElementById('weekchart').style.display = 'none';
+            document.getElementById('monthchart').style.display = 'none';
 
-    // Hide all tabs
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
 
-    // Show the selected canvas
-    if (tab === 'live') {
-        document.getElementById('sixhourschart').style.display = 'block';
-    } else if (tab === 'week') {
-        document.getElementById('weekchart').style.display = 'block';
-    } else if (tab === 'month') {
-        document.getElementById('monthchart').style.display = 'block';
-    }
+            if (tab === 'live') {
+                document.getElementById('sixhourschart').style.display = 'block';
+            } else if (tab === 'week') {
+                document.getElementById('weekchart').style.display = 'block';
+            } else if (tab === 'month') {
+                document.getElementById('monthchart').style.display = 'block';
+            }
 
-    // Set the clicked tab as active
-    document.getElementById(`${tab}-tab`).classList.add('active');
-}
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
 
-// Set default tab to 'live'
-document.addEventListener('DOMContentLoaded', function () {
-    showTab('live');
-});
+        document.addEventListener('DOMContentLoaded', function () {
+            showTab('live');
+        });
 
 
 
