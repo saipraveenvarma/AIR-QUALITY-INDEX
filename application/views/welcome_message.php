@@ -104,14 +104,12 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            /* Align items to the left */
             margin-left: 60%;
         }
 
         .aqi-color {
             height: 20px;
             width: 100px;
-            /* Adjust width as needed */
             border-radius: 3px;
             display: flex;
             justify-content: flex-end;
@@ -135,7 +133,6 @@
 
         .aqi-color span {
             text-align: right;
-            /* Align text to the right within the box */
         }
 
 
@@ -196,7 +193,6 @@
             border: none;
             border-top: 1px solid #ddd;
             margin: 5px 0;
-            /* Adjust margin for spacing */
         }
 
         .hidden {
@@ -208,14 +204,17 @@
         }
 
         .tab {
-            flex: 1;
-            text-align: center;
             cursor: pointer;
+            padding: 10px;
+            text-align: center;
             font-weight: normal;
+            text-decoration: none;
         }
 
-        .tab.active {
+        .active-tab {
             font-weight: bold;
+            text-decoration: underline;
+            text-decoration-color: black;
         }
     </style>
 </head>
@@ -293,6 +292,9 @@
 
         var week_data = <?php echo json_encode($sixhours_data); ?>;
         console.log("week Data:", week_data);
+
+        var month_data = <?php echo json_encode($sixhours_data); ?>;
+        console.log("month Data:", month_data);
 
         function updateMarkerInfo(data) {
             document.getElementById('marker-station').textContent = data.station;
@@ -391,11 +393,9 @@
         <div id="week-tab" class="tab" onclick="showTab('week')">WEEK</div>
         <div id="month-tab" class="tab" onclick="showTab('month')">MONTH</div>
     </div>
-    <canvas id="sixhourschart" width="340" height="190"></canvas>
-    <canvas id="weekchart" width="340" height="193" style="display: none;"></canvas>
-    <canvas id="monthchart" width="340" height="193" style="display: none;"></canvas>
+    <canvas id="chart" width="340" height="190"></canvas>
     <div id="data-html-container">
-        ${getSixHoursDataHTML(data.station)}
+        ${getDataHTML(data.station)}
     </div>
 </div>
 
@@ -423,23 +423,72 @@
             message: ''
         };
 
-        function getSixHoursDataHTML(station) {
-            const stationData = sixhours_data.filter(item => item.station === station);
 
-            if (stationData.length === 0) {
+        var globalData = sixhours_data; 
+
+        function showTab(tabName) {
+    let previousDataName = '';
+
+    switch (tabName) {
+        case 'week':
+            previousDataName = 'LIVE'; 
+            globalData = week_data;
+            renderChart('WEEK'); 
+            break;
+        case 'month':
+            previousDataName = 'LIVE'; 
+            globalData = month_data;
+            renderChart('MONTH'); 
+            break;
+        default:
+            previousDataName = 'WEEK or MONTH'; 
+            globalData = sixhours_data;
+            renderChart('6 HOURS'); 
+            break;
+    }
+
+    notifyDataChange(previousDataName, tabName);
+
+
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active-tab'); 
+    });
+    document.getElementById(`${tabName}-tab`).classList.add('active-tab');
+}
+
+        function notifyDataChange(previousDataName, newTabName) {
+            const tabNames = {
+                'live': 'LIVE',
+                'week': 'WEEK',
+                'month': 'MONTH'
+            };
+
+            // alert(`Data changed from ${tabNames[previousDataName.toLowerCase()]} to ${tabNames[newTabName]}`);
+        }
+
+        window.onload = function () {
+            showTab('live'); 
+        };
+
+
+
+        function getDataHTML(station) {
+            const graphData = globalData.filter(item => item.station === station);
+
+            if (graphData.length === 0) {
                 console.log('No data available for the selected station.');
                 globalChartData = { labels: [], values: [], message: 'No data available for the selected station.' };
                 return '<p>No data available for the selected station.</p>';
             }
 
-            let labels = stationData.map(item => {
+            let labels = graphData.map(item => {
                 let date = new Date(item.lastUpdate);
                 let hours = date.getHours().toString().padStart(2, '0');
                 let minutes = date.getMinutes().toString().padStart(2, '0');
-                return `${hours}:${minutes}`; 
+                return `${hours}:${minutes}`;
             });
 
-            let values = stationData.map(item => item.airQualityIndexValue);
+            let values = graphData.map(item => item.airQualityIndexValue);
 
             labels = labels.reverse();
             values = values.reverse();
@@ -449,13 +498,14 @@
 
             globalChartData = { labels: labels, values: values, message: '' };
 
-            return stationData.map(item => `
+            return graphData.map(item => `
        
     `).join('');
         }
 
-        function renderChart() {
-            const ctx = document.getElementById('sixhourschart').getContext('2d');
+
+        function renderChart(xAxisTitle) {
+            const ctx = document.getElementById('chart').getContext('2d');
 
             if (!ctx) {
                 console.error('Canvas context not found.');
@@ -489,7 +539,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: '6 HOURS'
+                                text: xAxisTitle 
                             },
                             grid: {
                                 display: false
@@ -515,39 +565,13 @@
 
         }
 
-        
 
-        function updateChart(station) {
-            getSixHoursDataHTML(station);
-            renderChart();
-        }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            renderChart();
-        });
 
-        function showTab(tab) {
-            document.getElementById('sixhourschart').style.display = 'none';
-            document.getElementById('weekchart').style.display = 'none';
-            document.getElementById('monthchart').style.display = 'none';
 
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(t => t.classList.remove('active'));
 
-            if (tab === 'live') {
-                document.getElementById('sixhourschart').style.display = 'block';
-            } else if (tab === 'week') {
-                document.getElementById('weekchart').style.display = 'block';
-            } else if (tab === 'month') {
-                document.getElementById('monthchart').style.display = 'block';
-            }
 
-            document.getElementById(`${tab}-tab`).classList.add('active');
-        }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            showTab('live');
-        });
 
 
 
@@ -557,7 +581,7 @@
 
         function getColor(aqi) {
             if (isNaN(aqi) || aqi === 'NA') {
-                return "#000000"; // Black color for NA or undefined values
+                return "#000000"; 
             }
             if (aqi <= 50) return "#479B55";
             if (aqi <= 100) return "#86ce00";
@@ -568,7 +592,7 @@
         }
 
         function getAQIText(aqi) {
-            if (isNaN(aqi) || aqi === 'NA') return "NA"; // Handle 'NA' or undefined values
+            if (isNaN(aqi) || aqi === 'NA') return "NA"; 
             if (aqi <= 50) return "Good";
             if (aqi <= 100) return "Satisfactory";
             if (aqi <= 200) return "Moderate";
@@ -591,15 +615,13 @@
         }
 
 
-        // Function to get AQI bar width based on AQI value
         function getAQIBarWidth(aqi) {
-            if (isNaN(aqi) || aqi === 'NA') return '0%'; // Handle 'NA' or undefined values
+            if (isNaN(aqi) || aqi === 'NA') return '0%';
             return `${Math.min((aqi / 500) * 100, 100)}%`;
         }
 
-        // Function to get AQI point position based on AQI value
         function getAQIPointPosition(aqi) {
-            if (isNaN(aqi) || aqi === 'NA') return '0%'; // Handle 'NA' or undefined values
+            if (isNaN(aqi) || aqi === 'NA') return '0%'; 
             return `${Math.min((aqi / 500) * 100, 100)}%`;
         }
 
