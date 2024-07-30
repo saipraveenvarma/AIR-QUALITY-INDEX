@@ -285,16 +285,16 @@
         });
 
         var weatherData = <?php echo json_encode($weather_data); ?>;
-        console.log("Weather Data:", weatherData);
+        // console.log("Weather Data:", weatherData);
 
         var sixhours_data = <?php echo json_encode($sixhours_data); ?>;
-        console.log("Six hours Data:", sixhours_data);
+        // console.log("Six hours Data:", sixhours_data);
 
-        var week_data = <?php echo json_encode($sixhours_data); ?>;
-        console.log("week Data:", week_data);
+        var week_data = <?php echo json_encode($week_data); ?>;
+        // console.log("week Data:", week_data);
 
-        var month_data = <?php echo json_encode($sixhours_data); ?>;
-        console.log("month Data:", month_data);
+        var month_data = <?php echo json_encode($month_data); ?>;
+        // console.log("month Data:", month_data);
 
         function updateMarkerInfo(data) {
             document.getElementById('marker-station').textContent = data.station;
@@ -394,8 +394,13 @@
         <div id="month-tab" class="tab" onclick="showTab('month')">MONTH</div>
     </div>
     <canvas id="chart" width="340" height="190"></canvas>
+     <canvas id="weekchart" width="340" height="190"></canvas>
+       <canvas id="monthchart" width="340" height="190"></canvas>
     <div id="data-html-container">
         ${getDataHTML(data.station)}
+         ${getDataHTML1(data.station)}
+          ${getDataHTML2(data.station)}
+        
     </div>
 </div>
 
@@ -408,6 +413,8 @@
    
     `;
             renderChart();
+            renderChart1();
+            renderChart2();
         }
 
         function getAvgValue(indexId, data) {
@@ -424,56 +431,9 @@
         };
 
 
-        var globalData = sixhours_data; 
-
-        function showTab(tabName) {
-    let previousDataName = '';
-
-    switch (tabName) {
-        case 'week':
-            previousDataName = 'LIVE'; 
-            globalData = week_data;
-            renderChart('WEEK'); 
-            break;
-        case 'month':
-            previousDataName = 'LIVE'; 
-            globalData = month_data;
-            renderChart('MONTH'); 
-            break;
-        default:
-            previousDataName = 'WEEK or MONTH'; 
-            globalData = sixhours_data;
-            renderChart('6 HOURS'); 
-            break;
-    }
-
-    notifyDataChange(previousDataName, tabName);
-
-
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active-tab'); 
-    });
-    document.getElementById(`${tabName}-tab`).classList.add('active-tab');
-}
-
-        function notifyDataChange(previousDataName, newTabName) {
-            const tabNames = {
-                'live': 'LIVE',
-                'week': 'WEEK',
-                'month': 'MONTH'
-            };
-
-            // alert(`Data changed from ${tabNames[previousDataName.toLowerCase()]} to ${tabNames[newTabName]}`);
-        }
-
-        window.onload = function () {
-            showTab('live'); 
-        };
-
-
 
         function getDataHTML(station) {
-            const graphData = globalData.filter(item => item.station === station);
+            const graphData = sixhours_data.filter(item => item.station === station);
 
             if (graphData.length === 0) {
                 console.log('No data available for the selected station.');
@@ -504,7 +464,7 @@
         }
 
 
-        function renderChart(xAxisTitle) {
+        function renderChart() {
             const ctx = document.getElementById('chart').getContext('2d');
 
             if (!ctx) {
@@ -539,7 +499,7 @@
                         x: {
                             title: {
                                 display: true,
-                                text: xAxisTitle 
+                                text: "6 HOURS"
                             },
                             grid: {
                                 display: false
@@ -568,10 +528,207 @@
 
 
 
+        let chartInstance1 = null;
+
+        let globalChartData1 = {
+            labels1: [],
+            values1: [],
+            message: ''
+        };
 
 
 
+        function getDataHTML1(station) {
+            const graphData = week_data.filter(item => item.station === station);
 
+            if (graphData.length === 0) {
+                console.log('No data available for the selected station.');
+                globalChartData1 = { labels1: [], values1: [], message: 'No data available for the selected station.' };
+                return; // Return nothing or appropriate HTML if needed
+            }
+
+            let labels1 = graphData.map(item => {
+                let date = new Date(item.lastUpdate);
+                let hours = date.getHours().toString().padStart(2, '0');
+                let minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            });
+
+            let values1 = graphData.map(item => item.airQualityIndexValue);
+
+            labels1 = labels1.reverse();
+            values1 = values1.reverse();
+
+            console.log('Reversed labels1:', labels1);
+            console.log('Reversed values1:', values1);
+
+            globalChartData1 = { labels1: labels1, values1: values1, message: '' };
+        }
+
+
+
+        function renderChart1() {
+            const ctx = document.getElementById('weekchart').getContext('2d');
+
+            if (!ctx) {
+                console.error('Canvas context not found.');
+                return;
+            }
+
+            if (chartInstance1) {
+                chartInstance1.destroy();
+            }
+
+            chartInstance1 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: globalChartData1.labels1,
+                    datasets: [{
+                        label: 'AQI',
+                        data: globalChartData1.values1,
+                        fill: false,
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "WEEK"
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true
+                            },
+                            ticks: {
+                                stepSize: 50,
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 500,
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+
+        let chartInstance2 = null;
+
+        let globalChartData2 = {
+            labels2: [],
+            values2: [],
+            message: ''
+        };
+
+
+
+        function getDataHTML2(station) {
+            const graphData = month_data.filter(item => item.station === station);
+
+            if (graphData.length === 0) {
+                console.log('No data available for the selected station.');
+                globalChartData2 = { labels2: [], values2: [], message: 'No data available for the selected station.' };
+                return; // Return nothing or appropriate HTML if needed
+            }
+
+            let labels2 = graphData.map(item => {
+                let date = new Date(item.lastUpdate);
+                let hours = date.getHours().toString().padStart(2, '0');
+                let minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${hours}:${minutes}`;
+            });
+
+            let values2 = graphData.map(item => item.airQualityIndexValue);
+
+            labels2 = labels2.reverse();
+            values2 = values2.reverse();
+
+            console.log('Reversed labels2:', labels2);
+            console.log('Reversed values2:', values2);
+
+            globalChartData2 = { labels2: labels2, values2: values2, message: '' };
+        }
+
+
+
+        function renderChart2() {
+            const ctx = document.getElementById('monthchart').getContext('2d');
+
+            if (!ctx) {
+                console.error('Canvas context not found.');
+                return;
+            }
+
+            if (chartInstance2) {
+                chartInstance2.destroy();
+            }
+
+            chartInstance2 = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: globalChartData2.labels2,
+                    datasets: [{
+                        label: 'AQI',
+                        data: globalChartData2.values2,
+                        fill: false,
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        tension: 0.1,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "MONTH"
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true
+                            },
+                            ticks: {
+                                stepSize: 50,
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 500,
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
 
 
@@ -581,7 +738,7 @@
 
         function getColor(aqi) {
             if (isNaN(aqi) || aqi === 'NA') {
-                return "#000000"; 
+                return "#000000";
             }
             if (aqi <= 50) return "#479B55";
             if (aqi <= 100) return "#86ce00";
@@ -592,7 +749,7 @@
         }
 
         function getAQIText(aqi) {
-            if (isNaN(aqi) || aqi === 'NA') return "NA"; 
+            if (isNaN(aqi) || aqi === 'NA') return "NA";
             if (aqi <= 50) return "Good";
             if (aqi <= 100) return "Satisfactory";
             if (aqi <= 200) return "Moderate";
@@ -621,7 +778,7 @@
         }
 
         function getAQIPointPosition(aqi) {
-            if (isNaN(aqi) || aqi === 'NA') return '0%'; 
+            if (isNaN(aqi) || aqi === 'NA') return '0%';
             return `${Math.min((aqi / 500) * 100, 100)}%`;
         }
 

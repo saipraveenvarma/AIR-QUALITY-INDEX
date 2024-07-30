@@ -11,6 +11,8 @@ class Welcome extends CI_Controller
  public function index() {
     $data['weather_data'] = $this->get_last_weather_data();
     $data['sixhours_data'] = $this->get_last_6_hours_data();
+    $data['week_data'] = $this->get_last_week_data();
+    $data['month_data'] = $this->get_last_month_data();
     $this->load->view('welcome_message', $data);
 }
 
@@ -21,5 +23,13 @@ class Welcome extends CI_Controller
 
     private function get_last_6_hours_data() {
         return $this->Welcome_model->get_last_6_hours_data();
+    }
+
+    private function get_last_week_data() {
+        return $this->Welcome_model->get_last_week_data();
+    }
+
+    private function get_last_month_data() {
+        return $this->Welcome_model->get_last_month_data();
     }
 }
