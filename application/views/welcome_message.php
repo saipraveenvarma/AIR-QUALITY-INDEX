@@ -195,26 +195,17 @@
             margin: 5px 0;
         }
 
-        .hidden {
-            display: none;
-        }
 
-        .active {
-            font-weight: bold;
-        }
 
         .tab {
             cursor: pointer;
             padding: 10px;
-            text-align: center;
             font-weight: normal;
-            text-decoration: none;
         }
 
-        .active-tab {
+        .tab.active {
             font-weight: bold;
-            text-decoration: underline;
-            text-decoration-color: black;
+            border-bottom: 2px solid black;
         }
     </style>
 </head>
@@ -389,18 +380,18 @@
                         
 <div class="sixhoursdata" id="sixhoursdata-container" style="display: flex; flex-direction: column; align-items: center;">
     <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
-        <div id="live-tab" class="tab" onclick="showTab('live')">LIVE</div>
+        <div id="live-tab" class="tab"style=" font-weight: bold;
+            border-bottom: 2px solid black;" onclick="showTab('live')">LIVE</div>
         <div id="week-tab" class="tab" onclick="showTab('week')">WEEK</div>
         <div id="month-tab" class="tab" onclick="showTab('month')">MONTH</div>
     </div>
     <canvas id="chart" width="340" height="190"></canvas>
-     <canvas id="weekchart" width="340" height="190"></canvas>
-       <canvas id="monthchart" width="340" height="190"></canvas>
+  <canvas id="weekchart" width="340" height="190" style="display: none;"></canvas> 
+    <canvas id="monthchart" width="340" height="190" style="display: none;"></canvas>
     <div id="data-html-container">
         ${getDataHTML(data.station)}
          ${getDataHTML1(data.station)}
           ${getDataHTML2(data.station)}
-        
     </div>
 </div>
 
@@ -423,23 +414,17 @@
         }
 
         let chartInstance = null;
+        let chartInstance1 = null;
+        let chartInstance2 = null;
 
-        let globalChartData = {
-            labels: [],
-            values: [],
-            message: ''
-        };
+        let globalChartData = { labels: [], values: [], message: '' };
+        let globalChartData1 = { labels1: [], values1: [], message: '' };
+        let globalChartData2 = { labels2: [], values2: [], message: '' };
 
-
+        let activeTab = 'live'; // Default active tab
 
         function getDataHTML(station) {
             const graphData = sixhours_data.filter(item => item.station === station);
-
-            if (graphData.length === 0) {
-                console.log('No data available for the selected station.');
-                globalChartData = { labels: [], values: [], message: 'No data available for the selected station.' };
-                return '<p>No data available for the selected station.</p>';
-            }
 
             let labels = graphData.map(item => {
                 let date = new Date(item.lastUpdate);
@@ -447,105 +432,15 @@
                 let minutes = date.getMinutes().toString().padStart(2, '0');
                 return `${hours}:${minutes}`;
             });
-
             let values = graphData.map(item => item.airQualityIndexValue);
-
             labels = labels.reverse();
             values = values.reverse();
-
-            console.log('Reversed Labels:', labels);
-            console.log('Reversed Values:', values);
-
             globalChartData = { labels: labels, values: values, message: '' };
-
-            return graphData.map(item => `
-       
-    `).join('');
+            return ''; // Update as needed
         }
-
-
-        function renderChart() {
-            const ctx = document.getElementById('chart').getContext('2d');
-
-            if (!ctx) {
-                console.error('Canvas context not found.');
-                return;
-            }
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: globalChartData.labels,
-                    datasets: [{
-                        label: 'AQI',
-                        data: globalChartData.values,
-                        fill: false,
-                        borderColor: 'black',
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: "6 HOURS"
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-
-                            },
-                            ticks: {
-                                stepSize: 50,
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 500,
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-
-        }
-
-
-
-
-        let chartInstance1 = null;
-
-        let globalChartData1 = {
-            labels1: [],
-            values1: [],
-            message: ''
-        };
-
-
 
         function getDataHTML1(station) {
             const graphData = week_data.filter(item => item.station === station);
-
-            if (graphData.length === 0) {
-                console.log('No data available for the selected station.');
-                globalChartData1 = { labels1: [], values1: [], message: 'No data available for the selected station.' };
-                return; // Return nothing or appropriate HTML if needed
-            }
 
             let labels1 = graphData.map(item => {
                 let date = new Date(item.lastUpdate);
@@ -553,101 +448,14 @@
                 let minutes = date.getMinutes().toString().padStart(2, '0');
                 return `${hours}:${minutes}`;
             });
-
             let values1 = graphData.map(item => item.airQualityIndexValue);
-
             labels1 = labels1.reverse();
             values1 = values1.reverse();
-
-            console.log('Reversed labels1:', labels1);
-            console.log('Reversed values1:', values1);
-
             globalChartData1 = { labels1: labels1, values1: values1, message: '' };
         }
 
-
-
-        function renderChart1() {
-            const ctx = document.getElementById('weekchart').getContext('2d');
-
-            if (!ctx) {
-                console.error('Canvas context not found.');
-                return;
-            }
-
-            if (chartInstance1) {
-                chartInstance1.destroy();
-            }
-
-            chartInstance1 = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: globalChartData1.labels1,
-                    datasets: [{
-                        label: 'AQI',
-                        data: globalChartData1.values1,
-                        fill: false,
-                        backgroundColor: 'black',
-                        borderColor: 'black',
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: "WEEK"
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true
-                            },
-                            ticks: {
-                                stepSize: 50,
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 500,
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-
-
-        let chartInstance2 = null;
-
-        let globalChartData2 = {
-            labels2: [],
-            values2: [],
-            message: ''
-        };
-
-
-
         function getDataHTML2(station) {
             const graphData = month_data.filter(item => item.station === station);
-
-            if (graphData.length === 0) {
-                console.log('No data available for the selected station.');
-                globalChartData2 = { labels2: [], values2: [], message: 'No data available for the selected station.' };
-                return; // Return nothing or appropriate HTML if needed
-            }
 
             let labels2 = graphData.map(item => {
                 let date = new Date(item.lastUpdate);
@@ -655,80 +463,148 @@
                 let minutes = date.getMinutes().toString().padStart(2, '0');
                 return `${hours}:${minutes}`;
             });
-
             let values2 = graphData.map(item => item.airQualityIndexValue);
-
             labels2 = labels2.reverse();
             values2 = values2.reverse();
-
-            console.log('Reversed labels2:', labels2);
-            console.log('Reversed values2:', values2);
-
             globalChartData2 = { labels2: labels2, values2: values2, message: '' };
         }
 
+        function renderChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (ctx) {
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+                chartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: globalChartData.labels,
+                        datasets: [{
+                            label: 'AQI',
+                            data: globalChartData.values,
+                            fill: false,
+                            borderColor: 'black',
+                            tension: 0.1,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: "6 HOURS" }, grid: { display: false } },
+                            y: { title: { display: true }, ticks: { stepSize: 50 }, suggestedMin: 0, suggestedMax: 500, grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
 
+        function renderChart1() {
+            const ctx = document.getElementById('weekchart').getContext('2d');
+            if (ctx) {
+                if (chartInstance1) {
+                    chartInstance1.destroy();
+                }
+                chartInstance1 = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: globalChartData1.labels1,
+                        datasets: [{
+                            label: 'AQI',
+                            data: globalChartData1.values1,
+                            fill: false,
+                            backgroundColor: 'black',
+                            borderColor: 'black',
+                            tension: 0.1,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: "WEEK" }, grid: { display: false } },
+                            y: { title: { display: true }, ticks: { stepSize: 50 }, suggestedMin: 0, suggestedMax: 500, grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
 
         function renderChart2() {
             const ctx = document.getElementById('monthchart').getContext('2d');
-
-            if (!ctx) {
-                console.error('Canvas context not found.');
-                return;
-            }
-
-            if (chartInstance2) {
-                chartInstance2.destroy();
-            }
-
-            chartInstance2 = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: globalChartData2.labels2,
-                    datasets: [{
-                        label: 'AQI',
-                        data: globalChartData2.values2,
-                        fill: false,
-                        backgroundColor: 'black',
-                        borderColor: 'black',
-                        tension: 0.1,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
+            if (ctx) {
+                if (chartInstance2) {
+                    chartInstance2.destroy();
+                }
+                chartInstance2 = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: globalChartData2.labels2,
+                        datasets: [{
+                            label: 'AQI',
+                            data: globalChartData2.values2,
+                            fill: false,
+                            backgroundColor: 'black',
+                            borderColor: 'black',
+                            tension: 0.1,
+                            pointRadius: 0
+                        }]
                     },
-                    scales: {
-                        x: {
-                            title: {
-                                display: true,
-                                text: "MONTH"
-                            },
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true
-                            },
-                            ticks: {
-                                stepSize: 50,
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 500,
-                            grid: {
-                                display: false
-                            }
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { title: { display: true, text: "MONTH" }, grid: { display: false } },
+                            y: { title: { display: true }, ticks: { stepSize: 50 }, suggestedMin: 0, suggestedMax: 500, grid: { display: false } }
                         }
                     }
-                }
-            });
+                });
+            }
         }
+
+        function showTab(tabName) {
+            document.getElementById('chart').style.display = 'none';
+            document.getElementById('weekchart').style.display = 'none';
+            document.getElementById('monthchart').style.display = 'none';
+
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.fontWeight = 'normal';
+                tab.style.borderBottom = 'none';
+            });
+
+            if (tabName === 'live') {
+                document.getElementById('chart').style.display = 'block';
+                document.getElementById('live-tab').classList.add('active');
+                document.getElementById('live-tab').style.fontWeight = 'bold';
+                document.getElementById('live-tab').style.borderBottom = '2px solid black';
+                document.getElementById('data-html-container').innerHTML = getDataHTML(data.station);
+            } else if (tabName === 'week') {
+                document.getElementById('weekchart').style.display = 'block';
+                document.getElementById('week-tab').classList.add('active');
+                document.getElementById('week-tab').style.fontWeight = 'bold';
+                document.getElementById('week-tab').style.borderBottom = '2px solid black';
+                document.getElementById('data-html-container').innerHTML = getDataHTML1(data.station);
+            } else if (tabName === 'month') {
+                document.getElementById('monthchart').style.display = 'block';
+                document.getElementById('month-tab').classList.add('active');
+                document.getElementById('month-tab').style.fontWeight = 'bold';
+                document.getElementById('month-tab').style.borderBottom = '2px solid black';
+                document.getElementById('data-html-container').innerHTML = getDataHTML2(data.station);
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            showTab('live');
+        });
+
+
+
+
 
 
 
